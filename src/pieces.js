@@ -32,27 +32,27 @@ const pieceData = {
     },
     "k": {
         "color": "black",
-        "worth": 1000,
+        "worth": -1000,
     },
     "q": {
         "color": "black",
-        "worth": 9,
+        "worth": -9,
     },
     "b": {
         "color": "black",
-        "worth": 3,
+        "worth": -3,
     },
     "n": {
         "color": "black",
-        "worth": 3,
+        "worth": -3,
     },
     "r": {
         "color": "black",
-        "worth": 5,
+        "worth": -5,
     },
     "p": {
         "color": "black",
-        "worth": 1,
+        "worth": -1,
     }
 }
 export default pieceData;

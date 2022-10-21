@@ -24,6 +24,10 @@ class Piece {
     );
   };
 
+  isColor = (color) => {
+    return pieceData[this.type].color === color;
+  };
+
   /**
    * Move the piece to a new position.
    *
@@ -50,23 +54,51 @@ class Piece {
    * @returns {boolean} whether the move is valid
    */
   isValidMove = (x, y, pieces) => {
+    if (x < 0 || x > 7 || y < 0 || y > 7) return false;
+    if (this.x === x && this.y === y) return false;
+
     // pawn moves
     if (this.type === "P" || this.type === "p") {
-      // TODO: fix for capturing
-      if (this.x !== x) return false;
+      if (Math.abs(this.x - x) === 1) {
+        if (this.type === "P" && y !== this.y - 1) return false;
+        if (this.type === "p" && y !== this.y + 1) return false;
+        // check if there is a piece to capture
+        const piece = pieces.find((piece) => piece.x === x && piece.y === y);
+        if (!piece) return false;
+        if (piece.isColor(this.isColor("white") ? "black" : "white")) {
+          return true;
+        }
+        return false;
+      }
 
       let diffY = y - this.y;
       if (this.type === "P") {
         if (this.moves === 0) {
           if (diffY !== -1 && diffY !== -2) return false;
+          for (const piece of pieces) {
+            if (piece.x === x && piece.y === y) return false;
+            if (diffY === -2 && piece.x === x && piece.y === y - 1)
+              return false;
+          }
         } else {
           if (diffY !== -1) return false;
+          for (const piece of pieces) {
+            if (piece.x === x && piece.y === y) return false;
+          }
         }
       } else {
         if (this.moves === 0) {
-          if (diffY !== 1 && diffY !== 2) return false;
+            if (diffY !== 1 && diffY !== 2) return false;
+            for (const piece of pieces) {
+              if (piece.x === x && piece.y === y) return false;
+              if (diffY === 2 && piece.x === x && piece.y === y + 1)
+                return false;
+            }
         } else {
           if (diffY !== 1) return false;
+          for (const piece of pieces) {
+            if (piece.x === x && piece.y === y) return false;
+          }
         }
       }
     }
@@ -75,9 +107,8 @@ class Piece {
     if (this.type === "N" || this.type === "n") {
       let diffX = Math.abs(x - this.x);
       let diffY = Math.abs(y - this.y);
-      if (diffX === 1 && diffY === 2) return true;
-      if (diffX === 2 && diffY === 1) return true;
-      return false;
+      if (!(diffX === 1 && diffY === 2) && !(diffX === 2 && diffY === 1))
+        return false;
     }
 
     // bishop moves
@@ -170,6 +201,164 @@ class Piece {
     }
 
     return true;
+  };
+
+  /**
+   * Generates all possible moves for this type of piece in this position.
+   *
+   * @param {Array} pieces the pieces on the board
+   */
+  generateMoves = (pieces) => {
+    let moves = [];
+    if (this.type === "P" || this.type === "p") {
+      let diffY = this.type === "P" ? -1 : 1;
+      let diffY2 = this.type === "P" ? -2 : 2;
+      let x = this.x;
+      let y = this.y + diffY;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      if (this.moves === 0) {
+        y = this.y + diffY2;
+        if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      }
+    }
+
+    if (this.type === "N" || this.type === "n") {
+      let x = this.x - 1;
+      let y = this.y - 2;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      x = this.x + 1;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      y = this.y + 2;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      x = this.x - 1;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      x = this.x - 2;
+      y = this.y - 1;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      y = this.y + 1;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      x = this.x + 2;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+      y = this.y - 1;
+      if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+    }
+
+    if (this.type === "B" || this.type === "b") {
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+    }
+
+    if (this.type === "R" || this.type === "r") {
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+    }
+
+    if (this.type === "Q" || this.type === "q") {
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x + i;
+        let y = this.y;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x - i;
+        let y = this.y;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x;
+        let y = this.y + i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+      for (let i = 1; i < 7; i++) {
+        let x = this.x;
+        let y = this.y - i;
+        if (!this.isValidMove(x, y, pieces)) break;
+        moves.push([x, y]);
+      }
+    }
+
+    if (this.type === "K" || this.type === "k") {
+      for (let i = -1; i < 2; i++) {
+        for (let j = -1; j < 2; j++) {
+          let x = this.x + i;
+          let y = this.y + j;
+          if (this.isValidMove(x, y, pieces)) moves.push([x, y]);
+        }
+      }
+    }
+
+    return moves;
   };
 }
 

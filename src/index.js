@@ -5,23 +5,28 @@
  * @since 10/21/2022
  **/
 
+import { aiMove, initAI, minimax } from "./ai";
 import Piece from "./piece";
+import pieceData from "./pieces";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TILE_SIZE = canvas.width / 8;
 
-const pieces = [];
+let pieces = [];
 
 let selectedPiece;
 let mouseX;
 let mouseY;
+let whiteMove = true;
 
 const init = () => {
   // FEN string for the starting position
   const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
   loadPieces(fen);
+
+  initAI("black");
 
   setInterval(update, 1000 / 60);
 };
@@ -48,6 +53,15 @@ const loadPieces = (fen) => {
 
 const update = () => {
   draw();
+
+  if (!whiteMove) {
+    // generate move
+    const [score, move] = minimax(pieces, 4, false);
+    console.log(move + " " + score);
+    // apply move
+    aiMove(move.piece, move.destX, move.destY, pieces);
+    whiteMove = true;
+  }
 };
 
 const draw = () => {
@@ -77,10 +91,11 @@ const drawGrid = () => {
  */
 canvas.addEventListener("mousedown", (e) => {
   if (selectedPiece) return;
+  if (!whiteMove) return;
   const x = Math.floor(e.offsetX / TILE_SIZE);
   const y = Math.floor(e.offsetY / TILE_SIZE);
   for (const piece of pieces) {
-    if (piece.x === x && piece.y === y) {
+    if (piece.x === x && piece.y === y && piece.isColor("white")) {
       selectedPiece = piece;
       mouseX = e.clientX - canvas.getBoundingClientRect().left;
       mouseY = e.clientY - canvas.getBoundingClientRect().top;
@@ -97,14 +112,16 @@ canvas.addEventListener("mouseup", (e) => {
   const y = Math.floor(e.offsetY / TILE_SIZE);
   if (selectedPiece) {
     if (selectedPiece.move(x, y, pieces)) {
-    // check if there is a piece in the way
-    for (const piece of pieces) {
+      // check if there is a piece in the way
+      for (const piece of pieces) {
         if (piece === selectedPiece) continue;
         if (piece.x === x && piece.y === y) {
-            pieces.splice(pieces.indexOf(piece), 1);
-            break;
+          pieces.splice(pieces.indexOf(piece), 1);
+          break;
         }
       }
+
+      whiteMove = false;
     }
 
     selectedPiece = null;
