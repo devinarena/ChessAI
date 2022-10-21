@@ -56,8 +56,9 @@ const update = () => {
 
   if (!whiteMove) {
     // generate move
-    const [score, move] = minimax(pieces, 4, false);
-    console.log(move + " " + score);
+    const [score, move] = minimax(pieces, 3, false);
+    console.log(move);
+    console.log(score);
     // apply move
     aiMove(move.piece, move.destX, move.destY, pieces);
     whiteMove = true;
