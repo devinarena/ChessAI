@@ -96,13 +96,13 @@ canvas.addEventListener("mouseup", (e) => {
   const x = Math.floor(e.offsetX / TILE_SIZE);
   const y = Math.floor(e.offsetY / TILE_SIZE);
   if (selectedPiece) {
-    if (selectedPiece.move(x, y)) {
-      // check if the piece is being dropped on another piece to take
-      for (const piece of pieces) {
+    if (selectedPiece.move(x, y, pieces)) {
+    // check if there is a piece in the way
+    for (const piece of pieces) {
         if (piece === selectedPiece) continue;
         if (piece.x === x && piece.y === y) {
-          pieces.splice(pieces.indexOf(piece), 1);
-          break;
+            pieces.splice(pieces.indexOf(piece), 1);
+            break;
         }
       }
     }

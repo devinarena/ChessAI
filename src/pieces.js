@@ -5,10 +5,6 @@
  * @since 10/21/2022
  **/
 
-const pawnValidMove = (piece, x, y) => {
-    return piece.y - y === 1;
-};
-
 const pieceData = {
     "K": {
         "color": "white",
