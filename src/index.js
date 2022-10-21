@@ -5,7 +5,6 @@
  * @since 10/21/2022
  **/
 
-import { SPRITE_SIZE } from "./imageloader";
 import Piece from "./piece";
 
 const canvas = document.getElementById("gameCanvas");
@@ -53,8 +52,17 @@ const update = () => {
 
 const draw = () => {
   drawGrid();
+
+  // render pieces
+  for (const piece of pieces) {
+    if (piece !== selectedPiece) piece.render(ctx);
+    else piece.render(ctx, mouseX - TILE_SIZE / 2, mouseY - TILE_SIZE / 2);
+  }
 };
 
+/**
+ * Renders the checkerboard grid to the screen.
+ */
 const drawGrid = () => {
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
@@ -62,12 +70,11 @@ const drawGrid = () => {
       ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
   }
-  for (const piece of pieces) {
-    if (piece !== selectedPiece) piece.render(ctx);
-    else piece.render(ctx, mouseX - TILE_SIZE / 2, mouseY - TILE_SIZE/ 2);
-  }
 };
 
+/**
+ * Handles selecting and "picking up" a piece.
+ */
 canvas.addEventListener("mousedown", (e) => {
   if (selectedPiece) return;
   const x = Math.floor(e.offsetX / TILE_SIZE);
@@ -82,16 +89,31 @@ canvas.addEventListener("mousedown", (e) => {
   }
 });
 
+/**
+ * Handles dropping a piece.
+ */
 canvas.addEventListener("mouseup", (e) => {
   const x = Math.floor(e.offsetX / TILE_SIZE);
   const y = Math.floor(e.offsetY / TILE_SIZE);
   if (selectedPiece) {
-    selectedPiece.x = x;
-    selectedPiece.y = y;
+    if (selectedPiece.move(x, y)) {
+      // check if the piece is being dropped on another piece to take
+      for (const piece of pieces) {
+        if (piece === selectedPiece) continue;
+        if (piece.x === x && piece.y === y) {
+          pieces.splice(pieces.indexOf(piece), 1);
+          break;
+        }
+      }
+    }
+
     selectedPiece = null;
   }
 });
 
+/**
+ * Handles moving a piece while it is being dragged.
+ */
 canvas.addEventListener("mousemove", (e) => {
   if (selectedPiece) {
     mouseX = e.clientX - canvas.getBoundingClientRect().left;
